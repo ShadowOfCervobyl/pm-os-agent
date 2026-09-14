@@ -20,7 +20,13 @@ def review(client, model: str, proposed_output: str, source_data: str) -> dict:
                 f"SOURCE DATA Cortex used:\n{source_data}\n\n"
                 f"CORTEX PROPOSED OUTPUT:\n{proposed_output}"},
         ],
-        response_format={"type": "json_object"},
+        # json_schema, not json_object: Anthropic's OpenAI-compatible endpoint rejects json_object.
+        response_format={"type": "json_schema", "json_schema": {
+            "name": "verdict", "strict": True, "schema": {
+                "type": "object",
+                "properties": {"verdict": {"type": "string", "enum": ["pass", "fail"]},
+                               "reasons": {"type": "array", "items": {"type": "string"}}},
+                "required": ["verdict", "reasons"], "additionalProperties": False}}},
     )
     usage = resp.usage
     try:
