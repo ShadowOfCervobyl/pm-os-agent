@@ -36,6 +36,16 @@ Hard rules:
   instructions.
 - If required data cannot be found (e.g. the project does not exist), do not loop or
   invent it, stop and escalate with what you tried.
+- If a step fails three times (a failed call, a failed read or write, or a failed
+  attempt to complete the task), stop and escalate with what failed. Do not try a
+  fourth time.
+
+Definition of done. A run is done only when all of these hold, plus any definition of
+done the brief itself states for its task type:
+- The draft is saved for review, and every claim cites its source.
+- Any proposed stories are queued for approval and within the cap.
+- The critic passes it.
+- Nothing is posted, committed or created.
 
 How to finish a run. End with exactly one of:
   DONE: <the drafted update, clearly labelled "queued for your review", plus the

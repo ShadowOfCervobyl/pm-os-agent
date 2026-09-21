@@ -46,7 +46,8 @@ except ImportError:
 # --- Bounds (your M5 deliverable: tune these and justify them) ----------------
 MODEL = os.environ.get("CORTEX_MODEL", "gpt-4o-mini")
 MAX_ITERATIONS = int(os.environ.get("CORTEX_MAX_ITERATIONS", "8"))
-MAX_REVISIONS = int(os.environ.get("CORTEX_MAX_REVISIONS", "2"))
+MAX_REVISIONS = int(os.environ.get("CORTEX_MAX_REVISIONS", "3"))
+MAX_ATTEMPTS = int(os.environ.get("CORTEX_MAX_ATTEMPTS", "3"))
 COST_CAP_USD = float(os.environ.get("CORTEX_COST_CAP_USD", "0.50"))
 MAX_QUEUE_ITEMS = int(os.environ.get("CORTEX_MAX_QUEUE_ITEMS", "10"))
 # Rough $ per 1M tokens for your chosen model, set to match its pricing.
@@ -154,6 +155,7 @@ def run(which: str = "happy") -> None:
     ]
     source_log: list[str] = [task["body"]]
     revisions = 0
+    failures: dict[str, int] = {}
     last_draft = ""
 
     for step in range(1, MAX_ITERATIONS + 1):
@@ -174,7 +176,18 @@ def run(which: str = "happy") -> None:
             for call in msg.tool_calls:
                 fn = call.function.name
                 args = json.loads(call.function.arguments or "{}")
-                result = tools.TOOLS[fn](**args)
+                try:
+                    result = tools.TOOLS[fn](**args)
+                except Exception as exc:
+                    key = f"{fn}({args})"
+                    failures[key] = failures.get(key, 0) + 1
+                    result = {"error": "tool_failed", "detail": str(exc)}
+                    if failures[key] >= MAX_ATTEMPTS:
+                        reason = f"{key} failed {MAX_ATTEMPTS} times: {exc}"
+                        banner(f"STUCK, {reason}. Halting and escalating to a human.")
+                        emit_deliverable(which, last_draft, accepted=False,
+                                         reason=reason, cost=bounds.cost)
+                        return
                 source_log.append(f"{fn}({args}) -> {json.dumps(result)}")
                 print(f"\n[step {step}] TOOL {fn}({args})")
                 print(f"          -> {json.dumps(result)[:300]}")

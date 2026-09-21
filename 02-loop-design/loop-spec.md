@@ -9,25 +9,35 @@
 
 ## 1. Trigger & loop type
 
-**Chosen type:** _heartbeat · cron · hook · goal_
+**Chosen type:** hook. Another agent, system, user or operator wakes Cortex with instructions and a definition of done.
 
-_Why this type? (e.g. a Monday-morning cron that assembles the weekly update, plus a hook on a new PRD to propose stories.)_
+**Ruled out:**
+- **Cron** runs on a schedule or at a set time with no request. That gives the AI more autonomy than the first runs should have.
+- **Heartbeat** watches the to-do list, the repo and email, and starts itself when something changes. Cortex would begin work nobody asked for.
+- **Goal** keeps working until the output matches the assignment exactly. That has no end without a check and a limit. The critic already does this check inside a run, but it does not start one.
+
+**Dedupe:** by request ID first, then by project and week, since not every caller will send an ID and repeating tasks can collide. On any match or possible match, Cortex analyzes it and checks with the operator before running. It never runs silently. This adds work for the operator, which is acceptable until the edge cases are found. The build has no live hook and no request IDs yet, so it does not enforce dedupe. That waits for a real hook.
 
 ## 2. Goal / definition of done
 
-_What outcome is this loop responsible for? For a goal loop, what validation says "done"? (e.g. a status update grounded in real activity, queued for review, nothing posted.)_
+A run is done when all three layers pass:
+- **Global, every run:** the draft is saved for review · proposed stories are queued for approval and within the cap · the critic returns a pass · nothing is posted, committed or created · every claim cites its source.
+- **Task type:** each task type has its own DoD. Prioritization differs from story drafting, for example.
+- **Operator:** whatever the operator specifies for that task.
+
+If Cortex can't finish, it escalates to the operator instead.
 
 ## 3. Stop conditions
 
 | Condition | What it looks like | What happens |
 |---|---|---|
-| **Success** | _…_ | _…_ |
-| **Stuck / give up** | _…_ | _escalate / log / halt_ |
-| **Escalate to human** | _…_ | _HITL checkpoint (from agent-line-map)_ |
+| **Success** | All three DoD layers pass | Stop. Queued for review, nothing posted |
+| **Stuck / give up** | The same step fails 3 times (one attempt = one failed call, one failed completion of the task, or one failed read or write), or the critic still fails the draft after 3 correction rounds | Stop. Escalate to the operator with what failed |
+| **Escalate to human** | Firm ship date asked for (M1 #4) · post asked for (M1 #8) · confidential or embargoed project · story batch over cap (M1 #7) · project or data doesn't exist · request ID or project-and-week match | Stop at the HITL checkpoint. Hand to the operator |
 
 ## 4. State
 
-_What persists across iterations, and what's the scope? (e.g. per-project context and last week's update; no cross-project confidential leakage.)_
+Everything is kept across runs. A run reads only its own project's history and the shared team norms and roadmap that are safe to share. With shared state, one project's confidential material sits within reach of every other run. In the jailbreak test, injected notes told Cortex to publish the embargoed Orbit roadmap in a Northstar update.
 
 ## 5. The five things a loop can lean on
 
@@ -35,11 +45,11 @@ _`state` is always-on. `connectors` only if you already have one wired (e.g. a J
 
 | Component | For Cortex |
 |---|---|
-| **Work tree** (isolated workspace per run, a git worktree) | _…_ |
-| **Skills** (reusable capabilities) | _…_ |
-| **Plugins / connectors** (tools & access, optional if you don't have one yet) | _…_ |
-| **Subagents** (independent check when the loop can't grade itself) | _placeholder → M3 orchestration-map.md_ |
-| **State tracking** | _…_ |
+| **Work tree** (isolated workspace per run, a git worktree) | Not needed yet. One run at a time, and Cortex only writes a draft file. Add it when runs go parallel. |
+| **Skills** (reusable capabilities) | Not needed yet. There is one task type today. Add them when prioritization and story drafting get their own DoD and format. |
+| **Plugins / connectors** (tools & access, optional if you don't have one yet) | None wired. The tools read fixture data today. Plan: read-only GitHub and Jira connectors later. |
+| **Subagents** (independent check when the loop can't grade itself) | _placeholder → M3 orchestration-map.md_ The critic is the independent check that exists now. |
+| **State tracking** | As in §4: per-project history plus shared norms, everything kept. |
 
 > Context plan (M4) and the hand-off to bounds & evals (M5) come in later modules, you'll add them to their own deliverables then, not here.
 
