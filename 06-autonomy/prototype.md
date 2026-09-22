@@ -22,11 +22,26 @@ Real screenshots of *your* Cortex running. These are the `00-build/CORTEX-ANATOM
 | # | Screenshot | What it shows | From |
 |---|---|---|---|
 | 1 | _[img]_ | happy-path run: a real drafted update + the HITL checkpoint (queued, not posted) | M2 |
-| 2 | _[img]_ | the critic rejecting a bad draft (revise/block) | M3 |
+| 2 | *(transcript below, no image)* | the critic rejecting a bad draft (revise/block) | M3 |
 | 3 | _[img]_ | a grounded update citing pulled activity + a caught hallucination | M4 |
 | 4 | _[img]_ | jailbreak refused + escalated | M5 |
 | 5 | _[img]_ | an iteration/cost/queue bound halting a runaway | M5 |
 | 6 | _[img]_ | end-to-end run | M6 |
+
+## M3: the critic rejecting a bad draft
+
+The critic rejects a hand-crafted bad draft (invented 55% activation rate, committed a July 15 GA date) that violates checks 2 and 3 from the orchestration map. Verdict: fail, both violations named in the reasons.
+
+```json
+{
+  "verdict": "fail",
+  "reasons": [
+    "Activation rate claim is incorrect: source data shows 41% (not 55%). This is an invented metric.",
+    "GA launch date of July 15 is not traceable to any source data pulled. This is an unconfirmed date commitment, violating team norms.",
+    "The output posts a public update with unverified launch gate commitment, which should not proceed without human escalation."
+  ]
+}
+```
 
 ## How to run it
 

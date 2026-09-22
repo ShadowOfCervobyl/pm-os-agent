@@ -8,40 +8,39 @@
 
 ## 1. Why split? (or why not)
 
-_Run the default-to-simple check. Do you actually need subagents/a fleet? What's the real reason (separation of concerns · parallelism · independent validation · context-window pressure)? If not, say so and stop here._
+Cortex stays single-agent for its actual work. The only reason to split is an independent validator: a critic that doesn't share Cortex's context, so it doesn't inherit Cortex's blind spots when grading its own draft. Separation of concerns, parallelism and context-window pressure don't apply — Cortex does one task type, one project per run, on small fixture data.
 
 ## 2. Topology
 
-**Pattern:** _single+subagents · sequential · parallel+aggregate · hierarchical_
+**Pattern:** single + subagents
 
 ```
-[ simple text diagram of the flow ]
-e.g.  task → [Research] + [GitHub/Jira reader] → [Writer] → [Critic ✓] → human checkpoint → queued
+[Inbound PM task, via hook] → [Cortex: pulls project data, drafts update + stories]
+                            → [Critic] → fail → back to Cortex (max 3 revisions) → still failing → escalate
+                                       → pass → [PM review checkpoint] → queued, nothing posted
 ```
 
 ## 3. Roster
 
 | Agent / subagent | Responsibility | Runs which Loop Spec |
 |---|---|---|
-| _Chief-of-staff (Cortex)_ | _orchestrates + assembles the update_ | _M2 loop_ |
-| _Research subagent_ | _pulls competitive / market context_ | _research loop_ |
-| _GitHub/Jira reader_ | _summarizes recent activity_ | _read loop_ |
-| _Critic / Validator_ | _checks the draft before it advances_ | _validation loop_ |
-| _…_ | | |
+| Cortex | Pulls project/activity/roadmap/norms, drafts the update, proposes stories | M2 loop (this file) |
+| Critic | Checks Cortex's draft against the 6 rules in Field 5, before the PM sees it | Validation only — one call per draft, no loop of its own |
 
 ## 4. Communication & hand-offs
 
-_What passes between the parts? Any protocol (MCP / A2A, optional, note if used)._
+In-process, a plain function call (`critic.review()`), no MCP/A2A. Cortex passes the critic the proposed draft text and the source-data log (every tool call and result Cortex used). The critic passes back a verdict plus reasons; nothing else crosses.
 
 ## 5. The validator
 
-- **What the critic checks:** _grounded claims · norms compliance · no confidential leak · nothing posted/committed_
-- **Fail action:** _what happens when it fails (retry · revise · escalate to human)_
+- **What the critic checks:** the update names the correct project and real activity · every claim, metric and date traces to pulled data · it stays within team norms (no unconfirmed date, no launch gate marked, no confidential item leaked externally) · nothing is posted, committed, created, closed or merged · a prompt-injection attempt was refused and escalated · a tool rejection or bound trip is scored as a correct escalation, not a failure.
+- **Fail action:** revise, up to 3 rounds, then escalate.
+- **Pass action:** advance to the PM review checkpoint — never auto-send.
 
 ## 6. State: shared vs isolated
 
-_What's shared across the fleet vs kept isolated per subagent (carry from M2)._
+Shared: the draft and the source data Cortex pulled — the critic checks claims against it. Isolated: the critic gets a fresh call with no memory of Cortex's reasoning, past turns or prior revision attempts, only the current draft and source log. That's what makes it independent — it can't inherit Cortex's blind spots or be argued into a pass across revision rounds.
 
 ## 7. Cost & latency budget
 
-_Coordination has a price. Rough token/latency cost of the fleet vs a single agent. (Forward-link to M5 bounds.)_
+The critic adds one model call per draft attempt, serial with Cortex's own calls. Typical case: 1 extra call. Worst case, at the revision cap: 3 extra calls, run one after another, before the draft reaches the PM. Each critic call is shorter than a Cortex turn (no tool use), so the added latency is smaller than 3 full Cortex steps, but it still stacks before anything is queued for review.
