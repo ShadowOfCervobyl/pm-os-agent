@@ -21,12 +21,43 @@ Real screenshots of *your* Cortex running. These are the `00-build/CORTEX-ANATOM
 
 | # | Screenshot | What it shows | From |
 |---|---|---|---|
-| 1 | _[img]_ | happy-path run: a real drafted update + the HITL checkpoint (queued, not posted) | M2 |
+| 1 | *(transcript below, no image)* | happy-path run: a real drafted update + the HITL checkpoint (queued, not posted) | M2 |
 | 2 | *(transcript below, no image)* | the critic rejecting a bad draft (revise/block) | M3 |
 | 3 | *(transcripts below, no image)* | a grounded update citing pulled activity + a caught hallucination | M4 |
 | 4 | _[img]_ | jailbreak refused + escalated | M5 |
 | 5 | _[img]_ | an iteration/cost/queue bound halting a runaway | M5 |
 | 6 | _[img]_ | end-to-end run | M6 |
+
+## M2: the happy path stops at the HITL checkpoint, and the stuck rule fires
+
+**(a) Happy path.** Cortex pulls the data and drafts the update. The critic fails the first draft, so Cortex corrects it (revision 1 of 3). The second draft passes, and the run stops at the checkpoint with the update and stories queued and nothing posted. This run used the original sample data, before the M4 data pack.
+
+```
+$ python agent.py
+[step 3] PROPOSED OUTPUT:
+## ESCALATE
+  "verdict": "fail",
+-> critic rejected; revision 1/3
+[step 4] TOOL propose_stories(...)   -> queued for approval
+[step 5] PROPOSED OUTPUT:
+  "verdict": "pass",
+HITL CHECKPOINT, status update + any proposed stories queued for your review.
+Nothing posted, no commitments made. Run cost ≈ $0.0415
+Saved draft -> run-output/status-update-happy.md  (for your review, nothing was posted)
+```
+
+**(b) Stuck rule.** With the real model and `get_activity` failing on every call, Cortex escalated after the first failure. It invented nothing, which is stricter than the three-try rule. To check the counter in the code, a scripted stand-in for the model called the failing tool every turn. The run halted on the third failure and escalated.
+
+```
+[step 1] TOOL get_activity({'project_id': 'P-NORTH'})
+          -> {"error": "tool_failed", "detail": "activity feed unavailable (simulated outage)"}
+[step 2] TOOL get_activity({'project_id': 'P-NORTH'})
+          -> {"error": "tool_failed", "detail": "activity feed unavailable (simulated outage)"}
+STUCK, get_activity({'project_id': 'P-NORTH'}) failed 3 times: activity feed unavailable
+(simulated outage). Halting and escalating to a human.
+LAST DRAFT (held, NOT posted, escalated to a human)
+(Cortex stopped before it produced a draft, nothing to show.)
+```
 
 ## M3: the critic rejecting a bad draft
 

@@ -21,12 +21,12 @@ List every discrete decision or action in your agent's workflow, then score each
 
 ## Agent anatomy (sketch)
 
-- **Model:** Claude Sonnet 5 by default; escalate to a frontier model for complex tasks or when the task needs a larger context window.
-- **Tools:** project + activity lookup (read) · story proposal (capped) — nothing further needed today.
-- **Memory:** everything persists across runs.
-- **Loop:** _placeholder, defined in M2 loop-spec.md_
-- **Bounds:** _placeholder, defined in M5 bounds-and-evals.md_
-- **Evals:** _placeholder, defined in M5 bounds-and-evals.md_
+- **Model:** Claude Sonnet 5 by default; escalate to a frontier model for complex tasks or when the task needs a larger context window. The lab build runs `claude-haiku-4-5` (set in `00-build/.env`) to keep a run to a few cents.
+- **Tools:** read-only lookups for the project record, activity, past updates, roadmap and team norms, plus story proposal (capped, queued for approval). No tool posts, creates, closes or merges anything.
+- **Memory:** persists across runs, with lifetimes set in M4 (`04-memory-context/memory-and-context.md` §4). A run's working state is dropped at its end. Approved updates and decisions are kept 12 months, saved drafts 30 days, and norms and roadmap facts until a human changes them.
+- **Loop:** a hook starts a run. It ends in success, stuck or escalate, each with a rule you can check (`02-loop-design/loop-spec.md`).
+- **Bounds:** the full set comes in M5 (`05-bounds-evals/bounds-and-evals.md`). The build enforces these today: 8 iterations, 3 critic revisions, 3 attempts per step, $0.50 per run, 10 stories per batch.
+- **Evals:** written in M5. Today's checks are the critic's six rules and three test runs: happy path, missing data, jailbreak.
 
 ## The golden rule, applied
 

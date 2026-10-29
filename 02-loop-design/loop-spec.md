@@ -37,22 +37,22 @@ If Cortex can't finish, it escalates to the operator instead.
 
 ## 4. State
 
-Everything is kept across runs. A run reads only its own project's history and the shared team norms and roadmap that are safe to share. With shared state, one project's confidential material sits within reach of every other run. In the jailbreak test, injected notes told Cortex to publish the embargoed Orbit roadmap in a Northstar update.
+Memory persists across runs, with lifetimes set in `04-memory-context/memory-and-context.md` §4. A run should read only its own project's history and the shared team norms and roadmap that are safe to share. With shared state, one project's confidential material sits within reach of every other run. In the jailbreak test, injected notes told Cortex to publish the embargoed Orbit roadmap in a Northstar update. The build does not yet filter embargoed roadmap items out of what the model reads. The fix is noted in M4 §5 and comes in M5.
 
 ## 5. The five things a loop can lean on
 
-_`state` is always-on. `connectors` only if you already have one wired (e.g. a Jira key or Google MCP), otherwise just note it as a plan. `skills`, `subagents`, `work tree` scale with autonomy; "not needed yet, because…" is a valid answer._
+`state` and the critic are in use. Work tree, skills and connectors are not needed yet.
 
 | Component | For Cortex |
 |---|---|
 | **Work tree** (isolated workspace per run, a git worktree) | Not needed yet. One run at a time, and Cortex only writes a draft file. Add it when runs go parallel. |
 | **Skills** (reusable capabilities) | Not needed yet. There is one task type today. Add them when prioritization and story drafting get their own DoD and format. |
 | **Plugins / connectors** (tools & access, optional if you don't have one yet) | None wired. The tools read fixture data today. Plan: read-only GitHub and Jira connectors later. |
-| **Subagents** (independent check when the loop can't grade itself) | _placeholder → M3 orchestration-map.md_ The critic is the independent check that exists now. |
+| **Subagents** (independent check when the loop can't grade itself) | One independent critic and no other subagents. See `03-orchestration/orchestration-map.md`. |
 | **State tracking** | As in §4: per-project history plus shared norms, everything kept. |
 
 > Context plan (M4) and the hand-off to bounds & evals (M5) come in later modules, you'll add them to their own deliverables then, not here.
 
 ## Link to live loop
 
-_[path to your agent in `00-build/`]_
+The agent lives in `00-build/`: `agent.py` (the loop and its bounds), `prompts.py` (Cortex's rules and the critic's six checks), `critic.py` (the independent validator) and `tools.py` (the read-only tools). Run it with `cd 00-build && python agent.py`. Add `missing-data` or `jailbreak` to run the other two test cases.
