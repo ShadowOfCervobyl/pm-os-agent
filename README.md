@@ -54,25 +54,25 @@ Stop and ask me at every decision."* If your assistant can't read files (plain C
 
 | # | Deliverable | Module | Status | File |
 |---|---|---|---|---|
-| 1 | **Working agent demo** (real run screenshots; link optional) | Built across labs | ☐ | `06-autonomy/prototype.md` |
+| 1 | **Working agent demo** (real run screenshots; link optional) | Built across labs | ✅ | `06-autonomy/prototype.md` |
 | 2 | **Loop Spec** | M2 | ✅ | `02-loop-design/loop-spec.md` |
 | 3 | **Orchestration Map** | M3 | ✅ | `03-orchestration/orchestration-map.md` |
-| 4 | **Insights: build process** | M6 | ☐ | `06-autonomy/build-insights.md` |
-| 5 | **Bounds, trust & autonomy strategy** | M6 | ☐ | `06-autonomy/production-and-autonomy.md` |
+| 4 | **Insights: build process** | M6 | ✅ | `06-autonomy/build-insights.md` |
+| 5 | **Bounds, trust & autonomy strategy** | M6 | ✅ | `06-autonomy/production-and-autonomy.md` |
 
 ## The agent in one sentence
 
-_What does your agent do, for whom, and where is the agent line, what does it decide vs. what stays human?_
+Cortex drafts a product manager's weekly status update and proposes next sprint's stories from real project activity, for the PM who owns the project. The agent line: Cortex reads, drafts and proposes. A human decides what to escalate and approves everything. Only a person can post, commit a ship date, or disclose an embargoed project.
 
 ## Build & demo
 
-- **How you built it:** _which coding agent (Claude Code / Cursor / Codex) you directed, start in `00-build/`_
-- **Demo link:** _[optional shareable URL]_
-- **Run screenshots:** _required, collected M2 to M6 in `06-autonomy/prototype.md`_
+- **How you built it:** Claude Code, directed through the module runbooks. The build is in `00-build/`.
+- **Demo link:** none. Cortex runs from the command line, and `06-autonomy/prototype.md` has the run transcripts.
+- **Run screenshots:** six runs from M2 to M6 in `06-autonomy/prototype.md`, kept as terminal transcripts.
 
 ## Where it sits on the Trust Ladder
 
-_shadow · assisted · supervised · bounded-autonomous · autonomous, which rung today, and what eval evidence would let it climb the next one?_
+**Assisted.** Cortex drafts and proposes, a human approves everything, and nothing is posted. It has run only on sample data. To climb to supervised it needs a 4-week shadow window on real data with at least 20 runs: at least 95% pass on the happy-path evals, 100% on the jailbreak and missing-source evals, a critic-miss rate of 5% or less, and zero incidents (`06-autonomy/production-and-autonomy.md`). Two of those evals do not pass today, so the gate is not met.
 
 ---
 
@@ -86,6 +86,7 @@ _shadow · assisted · supervised · bounded-autonomous · autonomous, which run
 ```
 pm-os-agent/
 ├── README.md                          ← this dashboard
+├── pitch.html                         ← the pitch deck (open in a browser, arrow keys to move)
 ├── 00-build/                          ← runnable starter: the transparent Cortex agent,
 │   │                                    fixtures, RUNBOOK, PROMPTS, CORTEX-ANATOMY
 │   ├── RUNBOOK.md                     ← open in your coding agent, add a key, run a fixture, screenshot

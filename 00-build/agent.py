@@ -4,8 +4,9 @@ directing your coding agent (Claude Code / Cursor / Codex) to shape this file. Y
 never have to hand-write it.
 
 Every bound the course talks about is visible right here in code, not buried in a
-framework: the max-iteration counter, the cost cap, the revision cap, the
-stop/escalate conditions, the auto-queue cap, and the absence of any publish tool.
+framework: the max-iteration counter, the cost cap, the run timeout, the kill
+switch, the revision cap, the stop/escalate conditions, the auto-queue cap, and the
+absence of any publish tool.
 
 Usage (ask your coding agent to run these for you, or run them yourself):
     python agent.py                # runs the happy-path task (weekly status update)
@@ -28,9 +29,10 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
-from openai import OpenAI
+from openai import APIError, OpenAI
 
 import tools
 from critic import review
@@ -50,6 +52,9 @@ MAX_REVISIONS = int(os.environ.get("CORTEX_MAX_REVISIONS", "3"))
 MAX_ATTEMPTS = int(os.environ.get("CORTEX_MAX_ATTEMPTS", "3"))
 COST_CAP_USD = float(os.environ.get("CORTEX_COST_CAP_USD", "0.50"))
 MAX_QUEUE_ITEMS = int(os.environ.get("CORTEX_MAX_QUEUE_ITEMS", "10"))
+RUN_TIMEOUT_S = float(os.environ.get("CORTEX_RUN_TIMEOUT_S", "120"))
+# Kill switch: create this file and every run halts at its next turn. Delete it to resume.
+KILL_FILE = Path(os.environ.get("CORTEX_KILL_FILE", Path(__file__).parent / "KILL"))
 # Rough $ per 1M tokens for your chosen model, set to match its pricing.
 PRICE_IN = float(os.environ.get("CORTEX_PRICE_IN_PER_M", "0.15"))
 PRICE_OUT = float(os.environ.get("CORTEX_PRICE_OUT_PER_M", "0.60"))
@@ -139,7 +144,8 @@ def emit_deliverable(which: str, draft: str, *, accepted: bool,
 
 
 def run(which: str = "happy") -> None:
-    client = OpenAI()
+    client = OpenAI(timeout=RUN_TIMEOUT_S / 3)  # the SDK's 2 retries make 3 attempts, all inside the run limit
+    started = time.monotonic()
     bounds = Bounds()
     task = tools.get_task(which)
     if "error" in task:
@@ -158,7 +164,16 @@ def run(which: str = "happy") -> None:
     failures: dict[str, int] = {}
     last_draft = ""
 
+    def halt(label: str, reason: str) -> None:
+        banner(f"{label}, {reason}. Halting and escalating to a human.")
+        emit_deliverable(which, last_draft, accepted=False,
+                         reason=reason, cost=bounds.cost)
+
     for step in range(1, MAX_ITERATIONS + 1):
+        if KILL_FILE.exists():
+            return halt("KILL SWITCH", f"kill switch engaged ({KILL_FILE.name} exists)")
+        if time.monotonic() - started > RUN_TIMEOUT_S:
+            return halt("TIMEOUT", f"run passed {RUN_TIMEOUT_S:g}s")
         if bounds.over_cap():
             reason = f"cost cap ${COST_CAP_USD} hit at ${bounds.cost:.4f}"
             banner(f"BOUND TRIPPED, {reason}. Halting and escalating to a human.")
@@ -166,8 +181,11 @@ def run(which: str = "happy") -> None:
                              reason=reason, cost=bounds.cost)
             return
 
-        resp = client.chat.completions.create(
-            model=MODEL, messages=messages, tools=TOOL_SCHEMAS)
+        try:
+            resp = client.chat.completions.create(
+                model=MODEL, messages=messages, tools=TOOL_SCHEMAS)
+        except APIError as exc:
+            return halt("MODEL CALL FAILED", f"model call failed: {type(exc).__name__}")
         bounds.add(resp.usage)
         msg = resp.choices[0].message
 
@@ -201,7 +219,10 @@ def run(which: str = "happy") -> None:
         print(f"\n[step {step}] PROPOSED OUTPUT:\n{proposed}")
 
         banner("CRITIC, independent validation")
-        verdict = review(client, MODEL, proposed, "\n".join(source_log))
+        try:
+            verdict = review(client, MODEL, proposed, "\n".join(source_log))
+        except APIError as exc:
+            return halt("MODEL CALL FAILED", f"critic call failed: {type(exc).__name__}")
         # Estimate critic spend too.
         bounds.cost += (verdict["_usage"]["prompt"] * PRICE_IN
                         + verdict["_usage"]["completion"] * PRICE_OUT) / 1_000_000

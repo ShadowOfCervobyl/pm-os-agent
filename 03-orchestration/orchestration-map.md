@@ -43,4 +43,4 @@ Shared: the draft and the source data Cortex pulled — the critic checks claims
 
 ## 7. Cost & latency budget
 
-The critic adds one model call per draft attempt, serial with Cortex's own calls. Typical case: 1 extra call. Worst case, at the revision cap: 3 extra calls, run one after another, before the draft reaches the PM. Each critic call is shorter than a Cortex turn (no tool use), so the added latency is smaller than 3 full Cortex steps, but it still stacks before anything is queued for review.
+The critic adds one model call per draft attempt, serial with Cortex's own calls. Typical case: 1 critic call. Worst case, at the revision cap: 4 critic calls (the first draft plus 3 revisions), run one after another, before the draft reaches the PM. Each critic call is shorter than a Cortex turn (no tool use), so the added latency is smaller than 4 full Cortex steps, but it still stacks before anything is queued for review.

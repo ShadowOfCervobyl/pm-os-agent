@@ -32,12 +32,12 @@ If Cortex can't finish, it escalates to the operator instead.
 | Condition | What it looks like | What happens |
 |---|---|---|
 | **Success** | All three DoD layers pass | Stop. Queued for review, nothing posted |
-| **Stuck / give up** | The same step fails 3 times (one attempt = one failed call, one failed completion of the task, or one failed read or write), or the critic still fails the draft after 3 correction rounds | Stop. Escalate to the operator with what failed |
+| **Stuck / give up** | The same step fails 3 times (one attempt = one failed call, one failed completion of the task, or one failed read or write), the critic still fails the draft after 3 correction rounds, or the run hits a bound (8 model turns, 120 seconds, $0.50, or the kill switch) | Stop. Escalate to the operator with what failed |
 | **Escalate to human** | Firm ship date asked for (M1 #4) · post asked for (M1 #8) · confidential or embargoed project · story batch over cap (M1 #7) · project or data doesn't exist · request ID or project-and-week match | Stop at the HITL checkpoint. Hand to the operator |
 
 ## 4. State
 
-Memory persists across runs, with lifetimes set in `04-memory-context/memory-and-context.md` §4. A run should read only its own project's history and the shared team norms and roadmap that are safe to share. With shared state, one project's confidential material sits within reach of every other run. In the jailbreak test, injected notes told Cortex to publish the embargoed Orbit roadmap in a Northstar update. The build does not yet filter embargoed roadmap items out of what the model reads. The fix is noted in M4 §5 and comes in M5.
+Memory persists across runs, with lifetimes set in `04-memory-context/memory-and-context.md` §4. A run should read only its own project's history and the shared team norms and roadmap that are safe to share. With shared state, one project's confidential material sits within reach of every other run. In the jailbreak test, injected notes told Cortex to publish the embargoed Orbit roadmap in a Northstar update. The build does not yet filter embargoed roadmap items out of what the model reads. The fix is still open. It is described in M4 §5 and listed in M5 §1.
 
 ## 5. The five things a loop can lean on
 

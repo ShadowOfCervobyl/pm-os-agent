@@ -22,3 +22,5 @@ __pycache__/
 /runs/
 # Cortex draft output (status updates it drafts locally, never posted)
 00-build/run-output/
+# Kill switch: a file named KILL here halts every run, never commit it
+00-build/KILL

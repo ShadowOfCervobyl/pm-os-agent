@@ -66,7 +66,10 @@ Then prove the bound trips (ask your coding agent to run these, or run them your
 CORTEX_MAX_ITERATIONS=2 python agent.py happy      # hits the iteration cap
 CORTEX_COST_CAP_USD=0.001 python agent.py happy     # hits the cost cap
 CORTEX_MAX_QUEUE_ITEMS=2 python agent.py happy       # the story batch is rejected + escalated
+touch KILL && python agent.py happy                 # kill switch: halts before any model call (rm KILL to resume)
 ```
+
+The run also stops on its own at `CORTEX_RUN_TIMEOUT_S` (default 120 seconds) and escalates cleanly if the model API fails.
 
 > Note: the `=2` override is deliberately set *below* the number of stories the PRD
 > justifies, so the runtime bound (the tool) forces a stop. That is the point, the
