@@ -9,14 +9,14 @@
 
 ## 1. Trigger & loop type
 
-**Chosen type:** hook. Another agent, system, user or operator wakes Cortex with instructions and a definition of done.
+**Chosen type:** hook. Something wakes Cortex with a request: another agent, a system, a user or an operator. The request carries the instructions and, sometimes, its own definition of done.
 
-**Ruled out:**
-- **Cron** runs on a schedule or at a set time with no request. That gives the AI more autonomy than the first runs should have.
-- **Heartbeat** watches the to-do list, the repo and email, and starts itself when something changes. Cortex would begin work nobody asked for.
-- **Goal** keeps working until the output matches the assignment exactly. That has no end without a check and a limit. The critic already does this check inside a run, but it does not start one.
+**Why not the others:**
+- **Cron:** it runs on a schedule and nobody asks for it. I do not want that much autonomy in the first runs.
+- **Heartbeat:** it watches my to-do list, the repo and email, and starts by itself when something changes. Cortex would start work nobody asked for.
+- **Goal:** it keeps going until the output matches the task exactly. Without a check and a limit it never ends. The critic already does this check inside a run, but it does not start a run.
 
-**Dedupe:** by request ID first, then by project and week, since not every caller will send an ID and repeating tasks can collide. On any match or possible match, Cortex analyzes it and checks with the operator before running. It never runs silently. This adds work for the operator, which is acceptable until the edge cases are found. The build has no live hook and no request IDs yet, so it does not enforce dedupe. That waits for a real hook.
+**Dedupe:** I check the request ID first, then project and week, because not every caller sends an ID and weekly tasks can collide. On a match, or a possible match, Cortex looks at it and asks the operator before it runs. It never runs silently. That costs the operator some work, and I accept it until we find the edge cases. Not built yet: the build has no live hook and no request IDs, so it does not enforce this. It waits for a real hook.
 
 ## 2. Goal / definition of done
 
@@ -37,7 +37,9 @@ If Cortex can't finish, it escalates to the operator instead.
 
 ## 4. State
 
-Memory persists across runs, with lifetimes set in `04-memory-context/memory-and-context.md` §4. A run should read only its own project's history and the shared team norms and roadmap that are safe to share. With shared state, one project's confidential material sits within reach of every other run. In the jailbreak test, injected notes told Cortex to publish the embargoed Orbit roadmap in a Northstar update. The build does not yet filter embargoed roadmap items out of what the model reads. The fix is still open. It is described in M4 §5 and listed in M5 §1.
+Memory stays between runs. The lifetimes are in `04-memory-context/memory-and-context.md` §4. A run should read only its own project's history, plus the team norms and the roadmap that are safe to share. If every run could read every project, one project's confidential material would sit next to all the others. The jailbreak test shows why: the injected notes told Cortex to publish the embargoed Orbit roadmap in a Northstar update.
+
+What is enforced now: the roadmap tool removes embargoed sections, and the project tool returns a stub for an embargoed project. Both have tests in `00-build/test_cortex.py`. What is not: the names Orbit and Pulsar still reach the model through the team norms, the past updates and the decision log, which cite them as examples (M5 §1).
 
 ## 5. The five things a loop can lean on
 
@@ -55,4 +57,4 @@ Memory persists across runs, with lifetimes set in `04-memory-context/memory-and
 
 ## Link to live loop
 
-The agent lives in `00-build/`: `agent.py` (the loop and its bounds), `prompts.py` (Cortex's rules and the critic's six checks), `critic.py` (the independent validator) and `tools.py` (the read-only tools). Run it with `cd 00-build && python agent.py`. Add `missing-data` or `jailbreak` to run the other two test cases.
+The agent lives in `00-build/`: `agent.py` (the loop and its bounds), `prompts.py` (Cortex's rules and the critic's six checks), `critic.py` (the independent validator) and `tools.py` (the read-only tools). Run it with `cd 00-build && python agent.py`. Add `missing-data` or `jailbreak` to run the other two test cases. The checks for the bounds and the embargo filter are in `00-build/test_cortex.py`. They use a scripted model, so they cost nothing.

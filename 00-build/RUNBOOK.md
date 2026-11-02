@@ -71,6 +71,12 @@ touch KILL && python agent.py happy                 # kill switch: halts before 
 
 The run also stops on its own at `CORTEX_RUN_TIMEOUT_S` (default 120 seconds) and escalates cleanly if the model API fails.
 
+To check the bounds and the embargo filter without calling the model, run the saved tests (scripted model, no cost):
+
+```bash
+.venv/bin/python test_cortex.py     # from 00-build/
+```
+
 > Note: the `=2` override is deliberately set *below* the number of stories the PRD
 > justifies, so the runtime bound (the tool) forces a stop. That is the point, the
 > tool's rejection is authoritative and the run escalates rather than quietly

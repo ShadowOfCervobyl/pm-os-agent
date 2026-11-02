@@ -21,11 +21,11 @@ List every discrete decision or action in your agent's workflow, then score each
 
 ## Agent anatomy (sketch)
 
-- **Model:** Claude Sonnet 5 by default; escalate to a frontier model for complex tasks or when the task needs a larger context window. The lab build runs `claude-haiku-4-5` (set in `00-build/.env`) to keep a run to a few cents.
-- **Tools:** read-only lookups for the project record, activity, past updates, roadmap and team norms, plus story proposal (capped, queued for approval). No tool posts, creates, closes or merges anything.
+- **Model:** Claude Sonnet 5 by default. I escalate to a frontier model for a complex task or when I need a bigger context window. The lab build runs `claude-haiku-4-5` (set in `00-build/.env`) to keep a run to a few cents.
+- **Tools:** read-only lookups for the project record, activity, past updates, roadmap and team norms, plus story proposal (capped, queued for approval). The roadmap and project tools hide embargoed items. No tool posts, creates, closes or merges anything.
 - **Memory:** persists across runs, with lifetimes set in M4 (`04-memory-context/memory-and-context.md` §4). A run's working state is dropped at its end. Approved updates and decisions are kept 12 months, saved drafts 30 days, and norms and roadmap facts until a human changes them.
 - **Loop:** a hook starts a run. It ends in success, stuck or escalate, each with a rule you can check (`02-loop-design/loop-spec.md`).
-- **Bounds:** set in code and listed in `05-bounds-evals/bounds-and-evals.md` §1: 8 model turns, 120 seconds, $0.50 per run, 3 critic revisions, 3 attempts per step, 10 stories per batch, and a kill-switch file.
+- **Bounds:** set in code and listed in `05-bounds-evals/bounds-and-evals.md` §1: 8 model turns, 120 seconds, $0.50 per run and $2 per day (set at the provider), 3 critic revisions, 3 attempts per step, 10 stories per batch, and a kill-switch file.
 - **Evals:** six trajectory cases in `05-bounds-evals/bounds-and-evals.md` §3, run on three test tasks (happy path, missing data, jailbreak). The critic's six rules grade each draft.
 
 ## The golden rule, applied

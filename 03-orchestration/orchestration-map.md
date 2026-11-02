@@ -8,7 +8,7 @@
 
 ## 1. Why split? (or why not)
 
-Cortex stays single-agent for its actual work. The only reason to split is an independent validator: a critic that doesn't share Cortex's context, so it doesn't inherit Cortex's blind spots when grading its own draft. Separation of concerns, parallelism and context-window pressure don't apply — Cortex does one task type, one project per run, on small fixture data.
+I keep Cortex as one agent for the real work. The one reason to split is an independent validator: a critic that does not share Cortex's context, so it does not inherit Cortex's blind spots when it grades Cortex's own draft. The other three reasons do not apply. Cortex does one task type, one project per run, on small fixture data, so there is no concern to separate, nothing to run in parallel and no context-window pressure.
 
 ## 2. Topology
 

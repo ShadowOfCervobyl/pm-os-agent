@@ -52,6 +52,9 @@ def get_project(project_id: str) -> dict:
         return {"error": "project_not_found", "project_id": project_id,
                 "hint": "no such project in the system",
                 "known_projects": list(projects.keys())}
+    if record.get("status") == "embargoed" or "confidential" in record.get("flags", []):
+        return {"project_id": project_id, "status": "embargoed",
+                "note": "details are not available to Cortex; do not reference this project"}
     # Return the project WITHOUT its activity blob; activity is a separate tool call
     # so the agent has to deliberately pull it (a teachable retrieval step).
     return {k: v for k, v in record.items() if k != "activity"}
@@ -86,12 +89,18 @@ def search_past_updates(query: str = "") -> dict:
 
 
 def get_roadmap(query: str = "") -> dict:
-    """Return the roadmap. Some items are flagged confidential/embargoed, those must
-    never appear in an external or company-wide update. `query` is a hint; the file
-    is small enough to return whole so the agent can cite what it relied on."""
-    text = (FIXTURES / "roadmap.md").read_text()
-    return {"query": query, "roadmap": text,
-            "warning": "items marked CONFIDENTIAL must not be shared outside the core team."}
+    """Return the shareable roadmap. Sections marked CONFIDENTIAL or EMBARGOED and the
+    file's `>` commentary lines are removed here, so the model never reads them.
+    `query` is a hint; what is left is small enough to return whole so the agent can
+    cite what it relied on."""
+    kept, keep = [], True
+    for line in (FIXTURES / "roadmap.md").read_text().splitlines():
+        if line.startswith("## "):
+            keep = not any(w in line.upper() for w in ("CONFIDENTIAL", "EMBARGOED"))
+        if keep and not line.startswith(">"):
+            kept.append(line)
+    return {"query": query, "roadmap": "\n".join(kept) + "\n",
+            "warning": "embargoed items are removed from this view; do not infer or mention them."}
 
 
 def get_norms(query: str = "") -> dict:
