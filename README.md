@@ -2,7 +2,15 @@
 
 > My final project for Product School's **Agentic Loops for PMs** certification. A chief-of-staff agent that turns raw inputs (project state, GitHub/Jira activity, roadmap, past updates) into finished PM work, a leadership status update and a proposed backlog for a human to clear, built loop-first, bounded, grown into a fleet, and shipped up the Trust Ladder.
 
-This is a **template repo**. Click **Use this template → Create a new repository**, name it `pm-os-agent` (or your own agent's name), and fill in one folder per module as you go.
+## For the grader
+
+This is the finished project. Everything you need is in the repo.
+
+- **Deliverables:** [Loop Spec](02-loop-design/loop-spec.md) · [Orchestration Map](03-orchestration/orchestration-map.md) · [Prototype and run transcripts](06-autonomy/prototype.md) · [Build insights](06-autonomy/build-insights.md) · [Production and autonomy](06-autonomy/production-and-autonomy.md). The other modules are in `01-agent-line/`, `04-memory-context/` and `05-bounds-evals/`.
+- **The deck:** [open it in the browser](https://shadowofcervobyl.github.io/pm-os-agent/pitch.html). The arrow keys move through the slides. The file is `pitch.html` in this repo. GitHub shows it as code, so use the link above or download it.
+- **Run the tests (no key needed):** in `00-build/`, run `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`, then `python test_cortex.py`. There are 44 tests in four files, and each runs with a scripted model.
+- **Run Cortex itself:** copy `.env.example` to `.env`, add a model key, then `python agent.py`. The steps are in [`00-build/RUNBOOK.md`](00-build/RUNBOOK.md).
+- **Where it stands:** assisted, the second of five rungs. It has run only on sample data. The open items are in [`06-autonomy/production-and-autonomy.md`](06-autonomy/production-and-autonomy.md).
 
 ---
 
