@@ -29,6 +29,16 @@ def _load_json(name: str) -> dict:
     return json.loads((FIXTURES / name).read_text())
 
 
+def _is_embargoed(record: dict) -> bool:
+    return record.get("status") == "embargoed" or "confidential" in record.get("flags", [])
+
+
+def _embargoed_names() -> list[str]:
+    """Short names (first word, lower case) of embargoed projects, read from projects.json."""
+    return [r["name"].split()[0].lower() for r in _load_json("projects.json").values()
+            if _is_embargoed(r)]
+
+
 def get_task(which: str = "happy") -> dict:
     """Read the inbound PM task brief to work on.
 
@@ -51,8 +61,8 @@ def get_project(project_id: str) -> dict:
     if record is None:
         return {"error": "project_not_found", "project_id": project_id,
                 "hint": "no such project in the system",
-                "known_projects": list(projects.keys())}
-    if record.get("status") == "embargoed" or "confidential" in record.get("flags", []):
+                "known_projects": [k for k, v in projects.items() if not _is_embargoed(v)]}
+    if _is_embargoed(record):
         return {"project_id": project_id, "status": "embargoed",
                 "note": "details are not available to Cortex; do not reference this project"}
     # Return the project WITHOUT its activity blob; activity is a separate tool call
@@ -75,9 +85,13 @@ def search_past_updates(query: str = "") -> dict:
     memory/retrieval surface).
 
     Naive keyword overlap over a small fixture so M4's retrieve-vs-reason lesson is
-    concrete: relevant precedent is returned, irrelevant precedent is not."""
+    concrete: relevant precedent is returned, irrelevant precedent is not. Entries that
+    name an embargoed project are removed first, so the model never reads them."""
     query = (query or "").lower()
-    corpus = _load_json("past-updates.json") + _load_json("decision-log.json")
+    hidden = _embargoed_names()
+    corpus = [u for u in _load_json("past-updates.json") + _load_json("decision-log.json")
+              if not any(n in f"{u.get('project','')} {u.get('summary','')} {u.get('theme','')}".lower()
+                         for n in hidden)]
     terms = {t for t in query.replace("#", " ").split() if len(t) > 2}
     hits = []
     for u in corpus:

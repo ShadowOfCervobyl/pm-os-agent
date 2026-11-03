@@ -71,10 +71,11 @@ touch KILL && python agent.py happy                 # kill switch: halts before 
 
 The run also stops on its own at `CORTEX_RUN_TIMEOUT_S` (default 120 seconds) and escalates cleanly if the model API fails.
 
-To check the bounds and the embargo filter without calling the model, run the saved tests (scripted model, no cost):
+To check the bounds, the embargo filter and the draft checks without calling the model, run the saved tests (scripted model, no cost):
 
 ```bash
-.venv/bin/python test_cortex.py     # from 00-build/
+.venv/bin/python test_cortex.py     # from 00-build/: bounds and embargo filter
+.venv/bin/python test_gates.py      # from 00-build/: the checks on a draft
 ```
 
 > Note: the `=2` override is deliberately set *below* the number of stories the PRD

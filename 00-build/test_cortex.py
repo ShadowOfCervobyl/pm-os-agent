@@ -29,6 +29,8 @@ import agent  # noqa: E402
 import tools  # noqa: E402
 
 FIXTURES = Path(__file__).parent / "fixtures"
+# Every drafting script pulls activity first, so a run is never held for lacking it.
+ACTIVITY = ("get_activity", {"project_id": "P-NORTH"})
 EMBARGOED_NAMES = ("Orbit", "Pulsar")
 EMBARGOED_PRD_TEXT = (
     "Unreleased AI features. Not to be referenced outside the core team",
@@ -146,7 +148,8 @@ class EmbargoTest(RunCase):
 
     def test_no_embargoed_text_reaches_the_model(self):
         model = ScriptedModel([
-            tool_reply(("get_roadmap", {}),
+            tool_reply(ACTIVITY,
+                       ("get_roadmap", {}),
                        ("get_project", {"project_id": "P-NORTH"}),
                        ("get_project", {"project_id": "P-VEGA"}),
                        ("get_project", {"project_id": "P-ORBIT"}),
@@ -189,7 +192,8 @@ class BoundsTest(RunCase):
         self.assertFalse(any(self.output_dir.glob("*")), "no draft exists, so nothing is saved")
 
     def test_critic_api_error_holds_the_draft(self):
-        model = ScriptedModel([text_reply("Weekly status update draft.")], critic=api_error())
+        model = ScriptedModel([tool_reply(ACTIVITY), text_reply("Weekly status update draft.")],
+                              critic=api_error())
         out = self.run_agent(model)
         self.assertEqual(len(model.critic_calls), 1)
         self.assert_held(out, "MODEL CALL FAILED")
@@ -205,7 +209,7 @@ class BoundsTest(RunCase):
         self.assert_held(out, "STUCK")
 
     def test_same_tool_failing_twice_does_not_halt(self):
-        bad = tool_reply(("get_project", {"bogus": "x"}))
+        bad = tool_reply(("get_project", {"bogus": "x"}), ACTIVITY)
         model = ScriptedModel([bad, bad, text_reply("Weekly status update draft.")])
         out = self.run_agent(model)
         self.assertEqual(len(model.calls), 3)

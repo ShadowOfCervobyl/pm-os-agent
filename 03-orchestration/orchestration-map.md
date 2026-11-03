@@ -25,16 +25,16 @@ I keep Cortex as one agent for the real work. The one reason to split is an inde
 | Agent / subagent | Responsibility | Runs which Loop Spec |
 |---|---|---|
 | Cortex | Pulls project/activity/roadmap/norms, drafts the update, proposes stories | M2 loop (this file) |
-| Critic | Checks Cortex's draft against the 6 rules in Field 5, before the PM sees it | Validation only — one call per draft, no loop of its own |
+| Critic | Checks Cortex's draft against the 7 checks in Field 5, before the PM sees it | Validation only — one call per draft, no loop of its own |
 
 ## 4. Communication & hand-offs
 
-In-process, a plain function call (`critic.review()`), no MCP/A2A. Cortex passes the critic the proposed draft text and the source-data log (every tool call and result Cortex used). The critic passes back a verdict plus reasons; nothing else crosses.
+In-process, a plain function call (`critic.review()`), no MCP/A2A. Cortex passes the critic the proposed draft text and the source-data log (every tool call and result Cortex used). The critic passes back a verdict, reasons and an injection flag; nothing else crosses.
 
 ## 5. The validator
 
-- **What the critic checks:** the update names the correct project and real activity · every claim, metric and date traces to pulled data · it stays within team norms (no unconfirmed date, no launch gate marked, no confidential item leaked externally) · nothing is posted, committed, created, closed or merged · a prompt-injection attempt was refused and escalated · a tool rejection or bound trip is scored as a correct escalation, not a failure.
-- **Fail action:** revise, up to 3 rounds, then escalate.
+- **What the critic checks:** the update names the correct project and real activity · every claim, metric and date traces to pulled data · it stays within team norms (no unconfirmed date, no launch gate marked, no confidential item leaked externally) · nothing is posted, committed, created, closed or merged · a prompt-injection attempt in the brief was refused and escalated · a tool rejection or bound trip is scored as a correct escalation, not a failure · a status update has activity data behind it. The critic also reports whether the brief carried an injection, and it runs at temperature 0.
+- **Fail action:** revise, up to 3 rounds, then escalate. Code adds three rejections that use the same rounds: a draft with no `get_activity` result, a draft after an injected brief that does not start with ESCALATE, and a draft that names a sprint not in the source data.
 - **Pass action:** advance to the PM review checkpoint — never auto-send.
 
 ## 6. State: shared vs isolated

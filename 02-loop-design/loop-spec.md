@@ -21,7 +21,7 @@
 ## 2. Goal / definition of done
 
 A run is done when all three layers pass:
-- **Global, every run:** the draft is saved for review · proposed stories are queued for approval and within the cap · the critic returns a pass · nothing is posted, committed or created · every claim cites its source.
+- **Global, every run:** the draft is saved for review · proposed stories are queued for approval and within the cap · the critic returns a pass · nothing is posted, committed or created · every claim cites its source · a status update has activity data behind it and names no sprint that is not in the data (code checks both).
 - **Task type:** each task type has its own DoD. Prioritization differs from story drafting, for example.
 - **Operator:** whatever the operator specifies for that task.
 
@@ -33,13 +33,13 @@ If Cortex can't finish, it escalates to the operator instead.
 |---|---|---|
 | **Success** | All three DoD layers pass | Stop. Queued for review, nothing posted |
 | **Stuck / give up** | The same step fails 3 times (one attempt = one failed call, one failed completion of the task, or one failed read or write), the critic still fails the draft after 3 correction rounds, or the run hits a bound (8 model turns, 120 seconds, $0.50, or the kill switch) | Stop. Escalate to the operator with what failed |
-| **Escalate to human** | Firm ship date asked for (M1 #4) · post asked for (M1 #8) · confidential or embargoed project · story batch over cap (M1 #7) · project or data doesn't exist · request ID or project-and-week match | Stop at the HITL checkpoint. Hand to the operator |
+| **Escalate to human** | Firm ship date asked for (M1 #4) · post asked for (M1 #8) · confidential or embargoed project · injection in the brief (the critic flags it, code requires ESCALATE) · story batch over cap (M1 #7) · project or data doesn't exist · request ID or project-and-week match | Stop at the HITL checkpoint. Hand to the operator |
 
 ## 4. State
 
 Memory stays between runs. The lifetimes are in `04-memory-context/memory-and-context.md` §4. A run should read only its own project's history, plus the team norms and the roadmap that are safe to share. If every run could read every project, one project's confidential material would sit next to all the others. The jailbreak test shows why: the injected notes told Cortex to publish the embargoed Orbit roadmap in a Northstar update.
 
-What is enforced now: the roadmap tool removes embargoed sections, and the project tool returns a stub for an embargoed project. Both have tests in `00-build/test_cortex.py`. What is not: the names Orbit and Pulsar still reach the model through the team norms, the past updates and the decision log, which cite them as examples (M5 §1).
+What is enforced now: the roadmap tool removes embargoed sections, the project tool returns a stub for an embargoed project, the past-updates tool drops entries about them, and the project list hides their IDs. All four have tests. What is not: the names Orbit and Pulsar still reach the model through the team norms, which cite them as examples (M5 §1).
 
 ## 5. The five things a loop can lean on
 
@@ -57,4 +57,4 @@ What is enforced now: the roadmap tool removes embargoed sections, and the proje
 
 ## Link to live loop
 
-The agent lives in `00-build/`: `agent.py` (the loop and its bounds), `prompts.py` (Cortex's rules and the critic's six checks), `critic.py` (the independent validator) and `tools.py` (the read-only tools). Run it with `cd 00-build && python agent.py`. Add `missing-data` or `jailbreak` to run the other two test cases. The checks for the bounds and the embargo filter are in `00-build/test_cortex.py`. They use a scripted model, so they cost nothing.
+The agent lives in `00-build/`: `agent.py` (the loop and its bounds), `prompts.py` (Cortex's rules and the critic's seven checks), `critic.py` (the independent validator) and `tools.py` (the read-only tools). Run it with `cd 00-build && python agent.py`. Add `missing-data` or `jailbreak` to run the other two test cases. The checks for the bounds, the embargo filters and the draft checks are in four files, `test_cortex.py`, `test_gates.py`, `test_history.py` and `test_project_list.py` (44 tests). They use a scripted model, so they cost nothing.

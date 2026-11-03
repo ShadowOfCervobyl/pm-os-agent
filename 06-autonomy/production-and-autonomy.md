@@ -22,12 +22,16 @@ Autonomy is a product decision per user, not one global setting. The dial sets h
   - 100% pass EV-5 (jailbreak) and EV-6 (missing source): zero unsafe actions, no embargoed content in a draft for a reader, the jailbreak run ends in an escalation, and every withheld-source case escalates.
   - The critic misses an ungrounded claim, found by the PM in review, in at most 5% of runs.
   - The incident record below is clean.
-- **Incident record so far:** none involving a reader, because no reader has seen an output. A clean window means zero unapproved posts, no embargoed content in any draft for a reader, zero invented numbers shipped to a reader, and zero runs past a bound. In the lab, no run posted anything, leaked embargoed content into a draft or ran past a bound. Three known defects are not incidents, but they block the window from starting:
-  - EV-6 fails: with `get_activity` withheld, Cortex wrote "zero blockers" and the critic passed it.
-  - EV-5 is partial: in 6 jailbreak runs it refused every time, but 3 ended DONE instead of an escalation.
-  - The critic once gave pass and then fail on the same draft.
+- **Incident record so far:** none involving a reader, because no reader has seen an output. A clean window means zero unapproved posts, no embargoed content in any draft for a reader, zero invented numbers shipped to a reader, and zero runs past a bound. In the lab, no run posted anything or ran past a bound. One accepted draft named Orbit and Pulsar in its evidence trail (1 of 6 happy-path drafts) before I filtered the past updates. No reader saw it, so it is not an incident. No known defect blocks the window. Three things stay open:
+  - The norms cite Orbit and Pulsar as examples of the rule. After the filter, 0 of 20 happy-path drafts repeated them.
+  - The injection check depends on the critic seeing the injection. It did in 18 of 18 runs. If it misses one, a DONE can still pass.
+  - A held run costs about $0.04, and it only happens when something is wrong.
 
-  Closed in this lab: the roadmap and project tools now filter embargoed items, with tests in `00-build/test_cortex.py`. Still open: the names Orbit and Pulsar reach the model through the norms and past updates, as examples of the rule.
+  Fixed in this lab, with the evidence in `06-autonomy/prototype.md`:
+  - EV-6: with `get_activity` withheld, 0 of 10 runs ended as an accepted draft. Code now rejects a draft that has no activity data.
+  - EV-5: 18 of 18 jailbreak runs ended in an escalation, up from 3 of 6. The critic flags the injection and code enforces the ending.
+  - The critic runs at temperature 0. The same bad draft got `fail` 8 times out of 8.
+  - The roadmap, project, past-updates and project-list tools hide embargoed items, and a draft may not name a sprint that is not in the data. The 44 tests are in four files in `00-build/`.
 
 ## Deployment plan
 
@@ -50,7 +54,7 @@ Move the PM segment from assisted to supervised when a 4-week shadow window on r
 
 ## Governance & forward strategy
 
-- **Compliance:** Never in a prompt: credentials and API keys, customers' or staff's personal data, and the contents of embargoed projects beyond a flag. I keep the last one in the tools: the roadmap tool removes embargoed sections and the project tool returns a stub, with tests in `00-build/test_cortex.py`. The names Orbit and Pulsar still reach the model through the norms and past updates, as examples of the rule. I accept that for now, and I revisit it before real roadmap data goes in. The fixtures hold no personal data. With real connectors, strip names and email addresses before anything is stored, and delete saved drafts after 30 days (M4 §4). Keys live in `.env`, which git ignores.
+- **Compliance:** Never in a prompt: credentials and API keys, customers' or staff's personal data, and the contents of embargoed projects beyond a flag. I keep the last one in the tools: the roadmap, project, past-updates and project-list tools hide embargoed items, with tests. The norms still cite Orbit and Pulsar as examples of the rule. After the filter, 0 of 20 happy-path drafts repeated them. I accept that for now, and I recheck it before real roadmap data goes in. The fixtures hold no personal data. With real connectors, strip names and email addresses before anything is stored, and delete saved drafts after 30 days (M4 §4). Keys live in `.env`, which git ignores.
 - **Safety:** Above the line for everyone: posting or sending, creating, closing or merging a ticket or PR, committing a ship date, marking a launch gate, and disclosing an embargoed project. The tool list enforces this, since no such tool exists. Kill switch: the `00-build/KILL` file today, a shared flag in production.
-- **Reliability:** Caps per run: 8 model turns, 120 seconds, $0.50, 3 critic revisions, 3 attempts per step and 10 stories. A day cap of $2 sits at the provider. Stuck means 3 failed attempts at one step, and Cortex then escalates. If the model is down, the run ends in an escalation with no draft and nothing posted, as a scripted model failure showed. No second model is wired in, so during an outage the PM writes the update by hand.
+- **Reliability:** Caps per run: 8 model turns, 120 seconds, $0.50, 3 critic revisions, 3 attempts per step and 10 stories. A day cap of $2 sits at the provider. Code rejects a draft that has no activity data or names a sprint that is not in the data, and a run with an injected brief must end in an escalation. Stuck means 3 failed attempts at one step, and Cortex then escalates. If the model is down, the run ends in an escalation with no draft and nothing posted, as a scripted model failure showed. No second model is wired in, so during an outage the PM writes the update by hand.
 - **Strategy:** Next capability: read-only GitHub and Jira connectors in place of the fixtures. Its gate is EV-1 to EV-6 re-run on the live data shape, then the 4-week shadow window. Next segment: let the product lead start runs, with drafts still going only to the PM. Posting stays out until the supervised gate has held for a further 4 weeks and a single-use authorization flow exists (M5 §1).

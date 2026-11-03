@@ -115,7 +115,7 @@ it can't bounce forever. That's what a fleet is, coordinated specialists, not on
 hero prompt."*
 
 **If it breaks:** if the critic passes the bad draft, make the error bigger (a
-clearly invented Sev-1 or a fake launch date); worst case, walk the six checks in
+clearly invented Sev-1 or a fake launch date); worst case, walk the seven checks in
 `CRITIC_SYSTEM`.
 
 ---

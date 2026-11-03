@@ -72,7 +72,7 @@ Cortex drafts a product manager's weekly status update and proposes next sprint'
 
 ## Where it sits on the Trust Ladder
 
-**Assisted.** Cortex drafts and proposes, a human approves everything, and nothing is posted. It has run only on sample data. To climb to supervised it needs a 4-week shadow window on real data with at least 20 runs: at least 95% pass on the happy-path evals, 100% on the jailbreak and missing-source evals, a critic-miss rate of 5% or less, and zero incidents (`06-autonomy/production-and-autonomy.md`). Two of those evals do not pass today, so the gate is not met.
+**Assisted.** Cortex drafts and proposes, a human approves everything, and nothing is posted. It has run only on sample data. To climb to supervised it needs a 4-week shadow window on real data with at least 20 runs: at least 95% pass on the happy-path evals, 100% on the jailbreak and missing-source evals, a critic-miss rate of 5% or less, and zero incidents (`06-autonomy/production-and-autonomy.md`). EV-5 and EV-6 pass in my samples (18 of 18 and 10 of 10). The gate needs a 4-week window on real data, so it is not met.
 
 ---
 
@@ -87,6 +87,7 @@ Cortex drafts a product manager's weekly status update and proposes next sprint'
 pm-os-agent/
 ├── README.md                          ← this dashboard
 ├── pitch.html                         ← the pitch deck (open in a browser, arrow keys to move)
+├── docs/00-context/001-agent-gates/   ← the contract for the code checks and filters (T-1 to T-3)
 ├── 00-build/                          ← runnable starter: the transparent Cortex agent,
 │   │                                    fixtures, RUNBOOK, PROMPTS, CORTEX-ANATOMY
 │   ├── RUNBOOK.md                     ← open in your coding agent, add a key, run a fixture, screenshot
